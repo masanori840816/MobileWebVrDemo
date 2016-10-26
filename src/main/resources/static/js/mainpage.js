@@ -7,14 +7,24 @@
     var manager;
     var objectModel;
     var obj;
+    var stats;
 
     this.initialize = function(){
+        // FPSの計測.
+        stats = new Stats();
+        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        document.body.appendChild( stats.dom );
+
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(window.devicePixelRatio);
 
         document.body.appendChild(renderer.domElement);
 
+        // Sceneの生成
         scene = new THREE.Scene();
+
+        // fogの追加
+        scene.fog = new THREE.Fog(0xFFFFFF, 0.01, 100);
 
         // カメラを生成
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
@@ -77,15 +87,26 @@
 
     };
     this.animate = function(timestamp) {
+        // FPS計測開始
+        stats.begin();
+
         // VRコントローラのupdate
         controls.update();
         // VRマネージャを通してシーンをレンダリング
         manager.render(scene, camera, timestamp);
 
+        // FPS計測終了
+        stats.end();
         // アニメーションループ
         requestAnimationFrame(animate);
+    };
+    this.onResizeWindow = function(){
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     };
     initialize();
     // アニメーションの開始
     animate(performance ? performance.now() : Date.now());
+    window.addEventListener('resize', onResizeWindow, false);
 }).call(this);
